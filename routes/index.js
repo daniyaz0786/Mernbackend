@@ -20,7 +20,7 @@ const countAddToCartProduct = require("../controller/countAddToCartProduct");
 const addToCardViewController = require("../controller/addToCartViewProduct");
 const updateAddToCartProduct = require("../controller/updateAddToCartProduct");
 const deleteAddToCartProduct = require("../controller/deleteAddToCartProduct");
-const searchProduct = require("../controller/product/SearchProduct");
+const searchProduct = require("../controller/product/searchProduct");
 const filterProductController = require("../controller/product/filterProduct");
 
 
