@@ -1,39 +1,32 @@
-// module.exports = authToken;
 const jwt = require("jsonwebtoken");
 
-async function authToken(req, res, next) {
+const loginUser = async (req, res) => {
   try {
-    const token = req.cookies?.token;
+    const { email, password } = req.body;
 
-    // console.log("token", token);
-    if (!token) {
-      return res.status(200).json({
-        message: "Please Login...!",
-        error: true,
-        success: false,
-      });
-    }
+    // yahan tum DB se user validate karte ho
+    const user = { _id: "123", email }; // example ke liye
 
-    jwt.verify(token, process.env.TOKEN_SECRET_KEY, function (err, decoded) {
-      // console.log(err);
-      // console.log("decoded", decoded);
+    const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET_KEY, {
+      expiresIn: "7d",
+    });
 
-      if (err) {
-        // console.log("error auth", err);
-      }
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // local pe false, render pe true
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 din
+    });
 
-      req.userId = decoded?._id;
-
-      next();
+    res.json({
+      message: "Login successful",
+      success: true,
+      user,
     });
   } catch (err) {
     res.status(400).json({
       message: err.message || err,
-      data: [],
-      error: true,
       success: false,
     });
   }
-}
-
-module.exports = authToken;
+};
