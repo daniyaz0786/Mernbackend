@@ -1,32 +1,36 @@
 const jwt = require("jsonwebtoken");
 
-const loginUser = async (req, res) => {
+async function authToken(req, res, next) {
   try {
-    const { email, password } = req.body;
+    const token = req.cookies?.token; // cookie me token check karna
 
-    // yahan tum DB se user validate karte ho
-    const user = { _id: "123", email }; // example ke liye
+    if (!token) {
+      return res.status(401).json({
+        message: "Please login first!",
+        error: true,
+        success: false,
+      });
+    }
 
-    const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET_KEY, {
-      expiresIn: "7d",
-    });
+    jwt.verify(token, process.env.TOKEN_SECRET_KEY, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({
+          message: "Invalid or expired token",
+          error: true,
+          success: false,
+        });
+      }
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // local pe false, render pe true
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 din
-    });
-
-    res.json({
-      message: "Login successful",
-      success: true,
-      user,
+      req.userId = decoded._id; // userId ko request me attach karna
+      next();
     });
   } catch (err) {
-    res.status(400).json({
-      message: err.message || err,
+    return res.status(500).json({
+      message: err.message || "Auth error",
+      error: true,
       success: false,
     });
   }
-};
+}
+
+module.exports = authToken;
